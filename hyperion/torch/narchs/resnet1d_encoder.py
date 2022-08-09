@@ -452,7 +452,7 @@ class ResNet1dEncoder(NetArch):
         if self.head_channels > 0:
             x = self.head_block(x)
 
-        return x
+        return h, x
 
     def get_config(self):
 

@@ -38,6 +38,8 @@ class AudioDataset(Dataset):
         transpose_input=False,
         wav_scale=2 ** 15 - 1,
         is_val=False,
+        return_uttid=False,
+        return_spkid=False
     ):
 
         try:
@@ -78,6 +80,8 @@ class AudioDataset(Dataset):
 
         self.return_fullseqs = return_fullseqs
         self.return_class = return_class
+        self.return_spkid = return_spkid
+        self.return_uttid = return_uttid
         self.return_clean_aug_pair = return_clean_aug_pair
 
         self.transpose_input = transpose_input
@@ -235,6 +239,10 @@ class AudioDataset(Dataset):
             return self._get_random_chunk(index)
 
     def _get_fullseq(self, index):
+        if (isinstance(index, list) or isinstance(index, tuple)) and len(index) == 2:
+            index, _ = index
+        else:
+            _  = self.max_chunk_length
         key = self.u2c.key[index]
         x, fs = self.r.read([key])
         x = x[0].astype(floatstr_torch(), copy=False)
@@ -249,12 +257,20 @@ class AudioDataset(Dataset):
 
         if self.return_clean_aug_pair:
             r = x, x_clean
+        else:
+            r = x,
 
         if not self.return_class:
             return r
 
         class_idx = self.utt_idx2class[index]
         r = *r, class_idx
+
+        # TODO: clean this up
+        if self.return_spkid:
+            r = *r, self.u2c[class_idx][1]
+        if self.return_uttid:
+            r = *r, self.u2c[class_idx][0]
         return r
 
     def _get_random_chunk(self, index):
