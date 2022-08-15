@@ -111,6 +111,12 @@ class ETDNNV1(NetArch):
     def in_context(self):
         return (self._context, self._context)
 
+    def forward_hid_feats(self, x, enc_layers, return_output=True):
+        h_enc = []
+        for i in range(self.num_blocks):
+            x = self.blocks[i](x)
+        return h_enc, x
+
     def forward(self, x):
 
         for i in range(self.num_blocks):
